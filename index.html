@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Miller-Schupp Path Viewer</title>
+    <style>
+        :root {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --accent: #6366f1;
+            --accent-light: #818cf8;
+            --accent-dark: #4f46e5;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --success: #10b981;
+            --error: #ef4444;
+            --border: #e2e8f0;
+            --shadow: rgba(0, 0, 0, 0.06);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 2px solid var(--border);
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            color: var(--accent-dark);
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        header p {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            padding: 1.2rem;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 8px var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-top: 0.25rem;
+        }
+
+        .search-section {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 200px;
+            padding: 0.8rem 1.2rem;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .filter-btn {
+            padding: 0.8rem 1.5rem;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--accent);
+        }
+
+        .filter-btn.active {
+            border-color: var(--accent);
+            background: var(--accent);
+            color: white;
+        }
+
+        .presentations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+            max-height: 320px;
+            overflow-y: auto;
+            padding: 0.25rem;
+        }
+
+        .presentations-grid::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .presentations-grid::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+            border-radius: 4px;
+        }
+
+        .presentations-grid::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+        .presentation-card {
+            background: var(--bg-card);
+            padding: 0.875rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid var(--border);
+            box-shadow: 0 1px 4px var(--shadow);
+        }
+
+        .presentation-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent-light);
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+
+        .presentation-card.selected {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+        }
+
+        .presentation-card .idx {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--accent-dark);
+        }
+
+        .presentation-card .preview {
+            font-family: 'Fira Code', 'Consolas', monospace;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .presentation-card .meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .badge-solved {
+            background: rgba(16, 185, 129, 0.12);
+            color: var(--success);
+        }
+
+        .badge-unsolved {
+            background: rgba(239, 68, 68, 0.12);
+            color: var(--error);
+        }
+
+        .path-viewer {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 1.5rem;
+            display: none;
+            box-shadow: 0 4px 20px var(--shadow);
+            border: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+
+        .path-viewer.visible {
+            display: block;
+        }
+
+        .path-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .path-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--accent-dark);
+        }
+
+        .path-meta {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .close-btn {
+            background: var(--bg-primary);
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.25rem;
+            cursor: pointer;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .close-btn:hover {
+            color: var(--error);
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .path-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+        }
+
+        .step {
+            display: grid;
+            grid-template-columns: 44px 1fr auto;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.875rem 1rem;
+            background: var(--bg-primary);
+            border-radius: 10px;
+            border-left: 4px solid var(--accent);
+        }
+
+        .step-number {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--accent);
+            color: white;
+            border-radius: 50%;
+            font-weight: 700;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .step-content {
+            min-width: 0;
+        }
+
+        .step-action {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+        }
+
+        .step-algebra {
+            font-family: 'Fira Code', 'Consolas', monospace;
+            background: var(--bg-secondary);
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+            margin-top: 0.4rem;
+            font-size: 1rem;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem 1.5rem;
+        }
+
+        .relator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .relator .label {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+
+        .relator .value {
+            color: var(--accent-dark);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .step-length {
+            background: var(--bg-secondary);
+            padding: 0.35rem 0.7rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            white-space: nowrap;
+            font-weight: 500;
+        }
+
+        .step.initial {
+            border-left-color: var(--accent-light);
+            background: rgba(99, 102, 241, 0.04);
+        }
+
+        .step.final {
+            border-left-color: var(--success);
+            background: rgba(16, 185, 129, 0.06);
+        }
+
+        .step.final .step-number {
+            background: var(--success);
+        }
+
+        .notation-key {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.25rem;
+            box-shadow: 0 2px 8px var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .notation-key h3 {
+            margin-bottom: 0.75rem;
+            color: var(--accent-dark);
+            font-size: 1rem;
+        }
+
+        .notation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 0.3rem;
+            font-size: 0.82rem;
+        }
+
+        .notation-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.2rem 0;
+        }
+
+        .notation-item code {
+            background: var(--bg-primary);
+            padding: 0.15rem 0.45rem;
+            border-radius: 4px;
+            font-family: 'Fira Code', 'Consolas', monospace;
+            color: var(--accent);
+            border: 1px solid var(--border);
+            font-size: 0.8rem;
+            min-width: 24px;
+            text-align: center;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+        }
+
+        .error-box {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--error);
+            border-radius: 10px;
+            padding: 1rem;
+            color: #991b1b;
+            text-align: center;
+        }
+
+        @media (max-width: 600px) {
+            .container { padding: 1rem; }
+            h1 { font-size: 1.6rem; }
+            .stats { grid-template-columns: repeat(2, 1fr); }
+            .step { grid-template-columns: 36px 1fr; }
+            .step-length { grid-column: 2; margin-top: 0.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Miller-Schupp Path Viewer</h1>
+            <p>Visualize AC-move solution paths for group presentations</p>
+        </header>
+
+        <div id="loading" class="loading">
+            <div class="loading-spinner"></div>
+            <p>Loading presentations and solutions...</p>
+        </div>
+
+        <div id="error" class="error-box hidden"></div>
+
+        <section class="stats hidden" id="stats">
+            <div class="stat-card">
+                <div class="stat-value" id="total-count">0</div>
+                <div class="stat-label">Total Presentations</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="solved-count">0</div>
+                <div class="stat-label">Solved</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="unsolved-count">0</div>
+                <div class="stat-label">Unsolved</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="avg-length">0</div>
+                <div class="stat-label">Avg Path Length</div>
+            </div>
+        </section>
+
+        <section class="search-section hidden" id="search-section">
+            <input type="text" class="search-input" id="search-input" placeholder="Search by index (e.g., 12, 45, 100)...">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="solved">Solved</button>
+            <button class="filter-btn" data-filter="unsolved">Unsolved</button>
+        </section>
+
+        <section class="presentations-grid hidden" id="presentations-grid"></section>
+
+        <section class="path-viewer" id="path-viewer">
+            <div class="path-header">
+                <div>
+                    <span class="path-title" id="path-title">Presentation #0</span>
+                    <div class="path-meta" id="path-meta"></div>
+                </div>
+                <button class="close-btn" id="close-path">&times;</button>
+            </div>
+            <div class="path-steps" id="path-steps"></div>
+        </section>
+
+        <section class="notation-key">
+            <h3>AC Move Reference</h3>
+            <div class="notation-grid">
+                <div class="notation-item"><code>0</code> R2 ← R2 · R1</div>
+                <div class="notation-item"><code>1</code> R1 ← R1 · R2⁻¹</div>
+                <div class="notation-item"><code>2</code> R2 ← R2 · R1⁻¹</div>
+                <div class="notation-item"><code>3</code> R1 ← R1 · R2</div>
+                <div class="notation-item"><code>4</code> R2 ← A·R2·a (conj a⁻¹)</div>
+                <div class="notation-item"><code>5</code> R1 ← B·R1·b (conj b⁻¹)</div>
+                <div class="notation-item"><code>6</code> R2 ← B·R2·b (conj b⁻¹)</div>
+                <div class="notation-item"><code>7</code> R1 ← a·R1·A (conj a)</div>
+                <div class="notation-item"><code>8</code> R2 ← a·R2·A (conj a)</div>
+                <div class="notation-item"><code>9</code> R1 ← b·R1·B (conj b)</div>
+                <div class="notation-item"><code>10</code> R2 ← b·R2·B (conj b)</div>
+                <div class="notation-item"><code>11</code> R1 ← A·R1·a (conj a⁻¹)</div>
+            </div>
+            <p style="margin-top: 0.75rem; color: var(--text-secondary); font-size: 0.85rem;">
+                <strong>Notation:</strong> a, b = generators &nbsp;|&nbsp; A, B = inverses (a⁻¹, b⁻¹) &nbsp;|&nbsp; ε = empty word &nbsp;|&nbsp; Goal: reduce to length 2
+            </p>
+        </section>
+    </div>
+
+    <script>
+        const AC_MOVE_NAMES = {
+            0: "R2 ← R2 · R1",
+            1: "R1 ← R1 · R2⁻¹",
+            2: "R2 ← R2 · R1⁻¹",
+            3: "R1 ← R1 · R2",
+            4: "R2 ← A·R2·a",
+            5: "R1 ← B·R1·b",
+            6: "R2 ← B·R2·b",
+            7: "R1 ← a·R1·A",
+            8: "R2 ← a·R2·A",
+            9: "R1 ← b·R1·B",
+            10: "R2 ← b·R2·B",
+            11: "R1 ← A·R1·a"
+        };
+
+        const SYMBOLS = { 1: 'a', 2: 'b', '-1': 'A', '-2': 'B' };
+
+        let solutions = [];
+        let presentations = [];
+        let solutionMap = {};
+        let currentFilter = 'all';
+
+        const loadingEl = document.getElementById('loading');
+        const errorEl = document.getElementById('error');
+        const statsSection = document.getElementById('stats');
+        const searchSection = document.getElementById('search-section');
+        const searchInput = document.getElementById('search-input');
+        const presentationsGrid = document.getElementById('presentations-grid');
+        const pathViewer = document.getElementById('path-viewer');
+        const pathTitle = document.getElementById('path-title');
+        const pathMeta = document.getElementById('path-meta');
+        const pathSteps = document.getElementById('path-steps');
+        const closePathBtn = document.getElementById('close-path');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+
+        async function loadData() {
+            try {
+                const [presResponse, solResponse] = await Promise.all([
+                    fetch('presentations.json'),
+                    fetch('solutions.jsonl')
+                ]);
+
+                if (!presResponse.ok) throw new Error('Failed to load presentations.json');
+                if (!solResponse.ok) throw new Error('Failed to load solutions file');
+
+                presentations = await presResponse.json();
+                
+                const solText = await solResponse.text();
+                solutions = solText.trim().split('\n').map(line => JSON.parse(line));
+                
+                // Create solution map by index
+                solutions.forEach(sol => {
+                    solutionMap[sol.idx] = sol;
+                });
+
+                loadingEl.classList.add('hidden');
+                updateStats();
+                renderPresentations();
+                statsSection.classList.remove('hidden');
+                searchSection.classList.remove('hidden');
+                presentationsGrid.classList.remove('hidden');
+
+            } catch (err) {
+                loadingEl.classList.add('hidden');
+                errorEl.textContent = `Error: ${err.message}`;
+                errorEl.classList.remove('hidden');
+            }
+        }
+
+        function updateStats() {
+            const solved = solutions.filter(s => s.solved);
+            const unsolved = solutions.filter(s => !s.solved);
+            const avgLength = solved.length > 0 
+                ? (solved.reduce((sum, s) => sum + (s.path_length || 0), 0) / solved.length).toFixed(1)
+                : 0;
+
+            document.getElementById('total-count').textContent = presentations.length;
+            document.getElementById('solved-count').textContent = solved.length;
+            document.getElementById('unsolved-count').textContent = unsolved.length;
+            document.getElementById('avg-length').textContent = avgLength;
+        }
+
+        function wordToString(word) {
+            const chars = [];
+            for (const val of word) {
+                if (val === 0) break;
+                chars.push(SYMBOLS[val] || '?');
+            }
+            return chars.length > 0 ? chars.join('') : 'ε';
+        }
+
+        function parsePresentation(arr) {
+            const maxLen = Math.floor(arr.length / 2);
+            const r1 = [], r2 = [];
+            for (let i = 0; i < maxLen; i++) {
+                if (arr[i] !== 0) r1.push(arr[i]);
+            }
+            for (let i = maxLen; i < arr.length; i++) {
+                if (arr[i] !== 0) r2.push(arr[i]);
+            }
+            return [r1, r2];
+        }
+
+        function reduceWord(word) {
+            const result = [];
+            for (const c of word) {
+                if (c === 0) continue;
+                if (result.length > 0) {
+                    const last = result[result.length - 1];
+                    if ((last === 1 && c === -1) || (last === -1 && c === 1) ||
+                        (last === 2 && c === -2) || (last === -2 && c === 2)) {
+                        result.pop();
+                        continue;
+                    }
+                }
+                result.push(c);
+            }
+            return result;
+        }
+
+        function invertWord(word) {
+            const result = [];
+            for (let i = word.length - 1; i >= 0; i--) {
+                if (word[i] === 0) continue;
+                result.push(word[i] === 1 ? -1 : word[i] === 2 ? -2 : word[i] === -1 ? 1 : 2);
+            }
+            return result;
+        }
+
+        function applyACMove(r1, r2, actionId) {
+            let newR1 = [...r1], newR2 = [...r2];
+            switch (actionId) {
+                case 0: newR2 = reduceWord([...r2, ...r1]); break;
+                case 1: newR1 = reduceWord([...r1, ...invertWord(r2)]); break;
+                case 2: newR2 = reduceWord([...r2, ...invertWord(r1)]); break;
+                case 3: newR1 = reduceWord([...r1, ...r2]); break;
+                case 4: newR2 = reduceWord([-1, ...r2, 1]); break;
+                case 5: newR1 = reduceWord([-2, ...r1, 2]); break;
+                case 6: newR2 = reduceWord([-2, ...r2, 2]); break;
+                case 7: newR1 = reduceWord([1, ...r1, -1]); break;
+                case 8: newR2 = reduceWord([1, ...r2, -1]); break;
+                case 9: newR1 = reduceWord([2, ...r1, -2]); break;
+                case 10: newR2 = reduceWord([2, ...r2, -2]); break;
+                case 11: newR1 = reduceWord([-1, ...r1, 1]); break;
+            }
+            return [newR1, newR2];
+        }
+
+        function renderPresentations() {
+            const searchTerm = searchInput.value.trim();
+            
+            // Build list of all presentations with their solution status
+            let items = presentations.map((pres, idx) => {
+                const sol = solutionMap[idx];
+                return {
+                    idx,
+                    pres,
+                    solved: sol ? sol.solved : false,
+                    solution: sol
+                };
+            });
+
+            if (currentFilter === 'solved') {
+                items = items.filter(item => item.solved);
+            } else if (currentFilter === 'unsolved') {
+                items = items.filter(item => !item.solved);
+            }
+
+            if (searchTerm) {
+                const indices = searchTerm.split(/[,\s]+/)
+                    .map(s => parseInt(s.trim()))
+                    .filter(n => !isNaN(n));
+                if (indices.length > 0) {
+                    items = items.filter(item => indices.includes(item.idx));
+                }
+            }
+
+            presentationsGrid.innerHTML = '';
+
+            if (items.length === 0) {
+                presentationsGrid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;">No presentations match your search</div>';
+                return;
+            }
+
+            for (const item of items) {
+                const [r1, r2] = parsePresentation(item.pres);
+                const preview = `⟨${wordToString(r1)}, ${wordToString(r2)}⟩`;
+                
+                const card = document.createElement('div');
+                card.className = 'presentation-card';
+                card.innerHTML = `
+                    <div class="idx">#${item.idx}</div>
+                    <div class="preview">${preview}</div>
+                    <div class="meta">
+                        <span class="badge ${item.solved ? 'badge-solved' : 'badge-unsolved'}">
+                            ${item.solved ? 'Solved' : 'Unsolved'}
+                        </span>
+                        <span>${item.solved && item.solution ? item.solution.path_length + ' steps' : '—'}</span>
+                    </div>
+                `;
+                card.addEventListener('click', () => {
+                    document.querySelectorAll('.presentation-card').forEach(c => c.classList.remove('selected'));
+                    card.classList.add('selected');
+                    showPath(item);
+                });
+                presentationsGrid.appendChild(card);
+            }
+        }
+
+        function showPath(item) {
+            const { idx, pres, solved, solution } = item;
+            
+            pathTitle.textContent = `Presentation #${idx}`;
+            pathSteps.innerHTML = '';
+
+            let [r1, r2] = parsePresentation(pres);
+
+            if (!solved || !solution || !solution.path || solution.path.length === 0) {
+                pathMeta.textContent = 'No solution available';
+                pathSteps.innerHTML = `
+                    <div class="empty-state">
+                        <p>This presentation has not been solved yet.</p>
+                        <p style="margin-top:0.5rem;">Initial state: ⟨a,b | ${wordToString(r1)}, ${wordToString(r2)}⟩</p>
+                    </div>
+                `;
+                pathViewer.classList.add('visible');
+                return;
+            }
+
+            pathMeta.textContent = `${solution.path_length} steps • ${solution.time.toFixed(4)}s`;
+
+            // Initial state
+            const initialStep = document.createElement('div');
+            initialStep.className = 'step initial';
+            initialStep.innerHTML = `
+                <div class="step-number">0</div>
+                <div class="step-content">
+                    <div class="step-action">Initial State</div>
+                    <div class="step-algebra">
+                        <span class="relator"><span class="label">R1 =</span> <span class="value">${wordToString(r1)}</span></span>
+                        <span class="relator"><span class="label">R2 =</span> <span class="value">${wordToString(r2)}</span></span>
+                    </div>
+                </div>
+                <div class="step-length">Len: ${r1.length + r2.length}</div>
+            `;
+            pathSteps.appendChild(initialStep);
+
+            // Each step
+            solution.path.forEach((step, index) => {
+                const [action, length] = step;
+                [r1, r2] = applyACMove(r1, r2, action);
+                const isFinal = index === solution.path.length - 1;
+
+                const stepEl = document.createElement('div');
+                stepEl.className = `step ${isFinal ? 'final' : ''}`;
+                stepEl.innerHTML = `
+                    <div class="step-number">${index + 1}</div>
+                    <div class="step-content">
+                        <div class="step-action">${AC_MOVE_NAMES[action]}</div>
+                        <div class="step-algebra">
+                            <span class="relator"><span class="label">R1 =</span> <span class="value">${wordToString(r1)}</span></span>
+                            <span class="relator"><span class="label">R2 =</span> <span class="value">${wordToString(r2)}</span></span>
+                        </div>
+                    </div>
+                    <div class="step-length">Len: ${length}</div>
+                `;
+                pathSteps.appendChild(stepEl);
+            });
+
+            // Success
+            const successStep = document.createElement('div');
+            successStep.className = 'step final';
+            successStep.innerHTML = `
+                <div class="step-number">✓</div>
+                <div class="step-content">
+                    <div class="step-action">Trivial Presentation Reached</div>
+                    <div class="step-algebra">
+                        <span class="relator"><span class="value">⟨a,b | ε, ε⟩ ≅ F₂</span></span>
+                    </div>
+                </div>
+                <div class="step-length">Len: 2</div>
+            `;
+            pathSteps.appendChild(successStep);
+
+            pathViewer.classList.add('visible');
+            pathViewer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        closePathBtn.addEventListener('click', () => {
+            pathViewer.classList.remove('visible');
+            document.querySelectorAll('.presentation-card').forEach(c => c.classList.remove('selected'));
+        });
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFilter = btn.dataset.filter;
+                renderPresentations();
+            });
+        });
+
+        searchInput.addEventListener('input', renderPresentations);
+
+        // Load data on page load
+        loadData();
+    </script>
+</body>
+</html>
