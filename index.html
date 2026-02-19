@@ -631,7 +631,7 @@
 {"idx": 2, "solved": false}</code></pre>
                 <p><strong>Required fields:</strong></p>
                 <ul style="margin-left: 1.5rem; margin-top: 0.5rem; color: var(--text-secondary);">
-                    <li><code>idx</code> - Presentation index (0-1189)</li>
+                    <li><code>idx</code> - Presentation index (0-1189 in file, displayed as 1-1190)</li>
                     <li><code>solved</code> - Boolean (true/false)</li>
                     <li><code>path</code> - Array of [action_id, resulting_length] pairs (if solved)</li>
                 </ul>
@@ -896,8 +896,8 @@
 
             if (searchTerm) {
                 const indices = searchTerm.split(/[,\s]+/)
-                    .map(s => parseInt(s.trim()))
-                    .filter(n => !isNaN(n));
+                    .map(s => parseInt(s.trim()) - 1)  // Convert 1-based input to 0-based
+                    .filter(n => !isNaN(n) && n >= 0);
                 if (indices.length > 0) {
                     items = items.filter(item => indices.includes(item.idx));
                 }
