@@ -635,7 +635,7 @@
                     <li><code>solved</code> - Boolean (true/false)</li>
                     <li><code>path</code> - Array of [action_id, resulting_length] pairs (if solved)</li>
                 </ul>
-                <p style="margin-top: 0.5rem;"><strong>Action IDs:</strong> 0-11 (see AC Move Reference below)</p>
+                <p style="margin-top: 0.5rem;"><strong>Action IDs:</strong> 0-11 in file (displayed as h1-h12, see reference below)</p>
             </details>
         </section>
 
@@ -681,18 +681,18 @@
         <section class="notation-key">
             <h3>AC Move Reference</h3>
             <div class="notation-grid">
-                <div class="notation-item"><code>0</code> R2 ← R2 · R1</div>
-                <div class="notation-item"><code>1</code> R1 ← R1 · R2⁻¹</div>
-                <div class="notation-item"><code>2</code> R2 ← R2 · R1⁻¹</div>
-                <div class="notation-item"><code>3</code> R1 ← R1 · R2</div>
-                <div class="notation-item"><code>4</code> R2 ← A·R2·a (conj a⁻¹)</div>
-                <div class="notation-item"><code>5</code> R1 ← B·R1·b (conj b⁻¹)</div>
-                <div class="notation-item"><code>6</code> R2 ← B·R2·b (conj b⁻¹)</div>
-                <div class="notation-item"><code>7</code> R1 ← a·R1·A (conj a)</div>
-                <div class="notation-item"><code>8</code> R2 ← a·R2·A (conj a)</div>
-                <div class="notation-item"><code>9</code> R1 ← b·R1·B (conj b)</div>
-                <div class="notation-item"><code>10</code> R2 ← b·R2·B (conj b)</div>
-                <div class="notation-item"><code>11</code> R1 ← A·R1·a (conj a⁻¹)</div>
+                <div class="notation-item"><code>h1</code> R2 ← R2 · R1</div>
+                <div class="notation-item"><code>h2</code> R1 ← R1 · R2⁻¹</div>
+                <div class="notation-item"><code>h3</code> R2 ← R2 · R1⁻¹</div>
+                <div class="notation-item"><code>h4</code> R1 ← R1 · R2</div>
+                <div class="notation-item"><code>h5</code> R2 ← A·R2·a (conj a⁻¹)</div>
+                <div class="notation-item"><code>h6</code> R1 ← B·R1·b (conj b⁻¹)</div>
+                <div class="notation-item"><code>h7</code> R2 ← B·R2·b (conj b⁻¹)</div>
+                <div class="notation-item"><code>h8</code> R1 ← a·R1·A (conj a)</div>
+                <div class="notation-item"><code>h9</code> R2 ← a·R2·A (conj a)</div>
+                <div class="notation-item"><code>h10</code> R1 ← b·R1·B (conj b)</div>
+                <div class="notation-item"><code>h11</code> R2 ← b·R2·B (conj b)</div>
+                <div class="notation-item"><code>h12</code> R1 ← A·R1·a (conj a⁻¹)</div>
             </div>
             <p style="margin-top: 0.75rem; color: var(--text-secondary); font-size: 0.85rem;">
                 <strong>Notation:</strong> a, b = generators &nbsp;|&nbsp; A, B = inverses (a⁻¹, b⁻¹) &nbsp;|&nbsp; ε = empty word &nbsp;|&nbsp; Goal: reduce to length 2
@@ -702,18 +702,18 @@
 
     <script>
         const AC_MOVE_NAMES = {
-            0: "R2 ← R2 · R1",
-            1: "R1 ← R1 · R2⁻¹",
-            2: "R2 ← R2 · R1⁻¹",
-            3: "R1 ← R1 · R2",
-            4: "R2 ← A·R2·a",
-            5: "R1 ← B·R1·b",
-            6: "R2 ← B·R2·b",
-            7: "R1 ← a·R1·A",
-            8: "R2 ← a·R2·A",
-            9: "R1 ← b·R1·B",
-            10: "R2 ← b·R2·B",
-            11: "R1 ← A·R1·a"
+            0: "h1: R2 ← R2 · R1",
+            1: "h2: R1 ← R1 · R2⁻¹",
+            2: "h3: R2 ← R2 · R1⁻¹",
+            3: "h4: R1 ← R1 · R2",
+            4: "h5: R2 ← A·R2·a",
+            5: "h6: R1 ← B·R1·b",
+            6: "h7: R2 ← B·R2·b",
+            7: "h8: R1 ← a·R1·A",
+            8: "h9: R2 ← a·R2·A",
+            9: "h10: R1 ← b·R1·B",
+            10: "h11: R2 ← b·R2·B",
+            11: "h12: R1 ← A·R1·a"
         };
 
         const SYMBOLS = { 1: 'a', 2: 'b', '-1': 'A', '-2': 'B' };
