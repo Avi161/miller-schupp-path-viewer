@@ -16,6 +16,7 @@
             --text-secondary: #64748b;
             --success: #10b981;
             --error: #ef4444;
+            --warning: #f59e0b;
             --border: #e2e8f0;
             --shadow: rgba(0, 0, 0, 0.06);
         }
@@ -77,6 +78,134 @@
 
         @keyframes spin {
             to { transform: rotate(360deg); }
+        }
+
+        .upload-section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 2px dashed var(--border);
+            box-shadow: 0 2px 8px var(--shadow);
+        }
+
+        .upload-section.dragover {
+            border-color: var(--accent);
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .upload-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .upload-header h3 {
+            color: var(--text-primary);
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .upload-content {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .upload-label {
+            display: inline-block;
+            padding: 0.6rem 1.25rem;
+            background: var(--accent);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s, transform 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .upload-label:hover {
+            background: var(--accent-dark);
+            transform: translateY(-1px);
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .upload-info {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            flex: 1;
+        }
+
+        .upload-info.success {
+            color: var(--success);
+        }
+
+        .source-toggle {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .source-btn {
+            padding: 0.4rem 0.8rem;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .source-btn:hover {
+            border-color: var(--accent-light);
+        }
+
+        .source-btn.active {
+            border-color: var(--accent);
+            background: var(--accent);
+            color: white;
+        }
+
+        .format-info {
+            background: var(--bg-primary);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            font-size: 0.85rem;
+            border: 1px solid var(--border);
+        }
+
+        .format-info summary {
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .format-info pre {
+            background: var(--bg-secondary);
+            padding: 0.75rem;
+            border-radius: 6px;
+            margin-top: 0.75rem;
+            overflow-x: auto;
+            font-size: 0.8rem;
+            border: 1px solid var(--border);
+        }
+
+        .format-info code {
+            font-family: 'Fira Code', 'Consolas', monospace;
+        }
+
+        .format-info p {
+            margin-top: 0.5rem;
+            color: var(--text-secondary);
         }
 
         .stats {
@@ -458,6 +587,7 @@
             .stats { grid-template-columns: repeat(2, 1fr); }
             .step { grid-template-columns: 36px 1fr; }
             .step-length { grid-column: 2; margin-top: 0.5rem; }
+            .upload-content { flex-direction: column; align-items: stretch; }
         }
     </style>
 </head>
@@ -474,6 +604,40 @@
         </div>
 
         <div id="error" class="error-box hidden"></div>
+
+        <section class="upload-section hidden" id="upload-section">
+            <div class="upload-header">
+                <h3>
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                    Upload Your Own Solutions
+                </h3>
+                <div class="source-toggle">
+                    <button class="source-btn active" data-source="default">Default</button>
+                    <button class="source-btn" data-source="custom">Custom</button>
+                </div>
+            </div>
+            <div class="upload-content">
+                <label class="upload-label" for="custom-file">
+                    Choose File
+                </label>
+                <input type="file" id="custom-file" accept=".jsonl,.json">
+                <span class="upload-info" id="upload-info">Upload a .jsonl or .json file with your solutions</span>
+            </div>
+            <details class="format-info">
+                <summary>Expected File Format</summary>
+                <p>Your file should be in JSONL format (one JSON object per line) or a JSON array:</p>
+                <pre><code>{"idx": 0, "solved": true, "path_length": 5, "path": [[8, 7], [5, 7], [3, 5], [9, 3], [2, 2]]}
+{"idx": 1, "solved": true, "path_length": 3, "path": [[1, 5], [7, 3], [2, 2]]}
+{"idx": 2, "solved": false}</code></pre>
+                <p><strong>Required fields:</strong></p>
+                <ul style="margin-left: 1.5rem; margin-top: 0.5rem; color: var(--text-secondary);">
+                    <li><code>idx</code> - Presentation index (0-1189)</li>
+                    <li><code>solved</code> - Boolean (true/false)</li>
+                    <li><code>path</code> - Array of [action_id, resulting_length] pairs (if solved)</li>
+                </ul>
+                <p style="margin-top: 0.5rem;"><strong>Action IDs:</strong> 0-11 (see AC Move Reference below)</p>
+            </details>
+        </section>
 
         <section class="stats hidden" id="stats">
             <div class="stat-card">
@@ -495,7 +659,7 @@
         </section>
 
         <section class="search-section hidden" id="search-section">
-            <input type="text" class="search-input" id="search-input" placeholder="Search by index (e.g., 12, 45, 100)...">
+            <input type="text" class="search-input" id="search-input" placeholder="Search by index (e.g., 1, 12, 100)...">
             <button class="filter-btn active" data-filter="all">All</button>
             <button class="filter-btn" data-filter="solved">Solved</button>
             <button class="filter-btn" data-filter="unsolved">Unsolved</button>
@@ -554,13 +718,16 @@
 
         const SYMBOLS = { 1: 'a', 2: 'b', '-1': 'A', '-2': 'B' };
 
-        let solutions = [];
+        let defaultSolutions = [];
+        let customSolutions = [];
         let presentations = [];
         let solutionMap = {};
         let currentFilter = 'all';
+        let currentSource = 'default';
 
         const loadingEl = document.getElementById('loading');
         const errorEl = document.getElementById('error');
+        const uploadSection = document.getElementById('upload-section');
         const statsSection = document.getElementById('stats');
         const searchSection = document.getElementById('search-section');
         const searchInput = document.getElementById('search-input');
@@ -571,6 +738,9 @@
         const pathSteps = document.getElementById('path-steps');
         const closePathBtn = document.getElementById('close-path');
         const filterBtns = document.querySelectorAll('.filter-btn');
+        const sourceBtns = document.querySelectorAll('.source-btn');
+        const customFileInput = document.getElementById('custom-file');
+        const uploadInfo = document.getElementById('upload-info');
 
         async function loadData() {
             try {
@@ -585,14 +755,12 @@
                 presentations = await presResponse.json();
                 
                 const solText = await solResponse.text();
-                solutions = solText.trim().split('\n').map(line => JSON.parse(line));
+                defaultSolutions = parseSolutionsFile(solText);
                 
-                // Create solution map by index
-                solutions.forEach(sol => {
-                    solutionMap[sol.idx] = sol;
-                });
+                buildSolutionMap(defaultSolutions);
 
                 loadingEl.classList.add('hidden');
+                uploadSection.classList.remove('hidden');
                 updateStats();
                 renderPresentations();
                 statsSection.classList.remove('hidden');
@@ -606,11 +774,33 @@
             }
         }
 
+        function parseSolutionsFile(content) {
+            const trimmed = content.trim();
+            
+            // Try parsing as JSON array first
+            if (trimmed.startsWith('[')) {
+                return JSON.parse(trimmed);
+            }
+            
+            // Parse as JSONL
+            return trimmed.split('\n')
+                .filter(line => line.trim())
+                .map(line => JSON.parse(line));
+        }
+
+        function buildSolutionMap(solutions) {
+            solutionMap = {};
+            solutions.forEach(sol => {
+                solutionMap[sol.idx] = sol;
+            });
+        }
+
         function updateStats() {
+            const solutions = currentSource === 'default' ? defaultSolutions : customSolutions;
             const solved = solutions.filter(s => s.solved);
             const unsolved = solutions.filter(s => !s.solved);
             const avgLength = solved.length > 0 
-                ? (solved.reduce((sum, s) => sum + (s.path_length || 0), 0) / solved.length).toFixed(1)
+                ? (solved.reduce((sum, s) => sum + (s.path_length || s.path?.length || 0), 0) / solved.length).toFixed(1)
                 : 0;
 
             document.getElementById('total-count').textContent = presentations.length;
@@ -688,7 +878,6 @@
         function renderPresentations() {
             const searchTerm = searchInput.value.trim();
             
-            // Build list of all presentations with their solution status
             let items = presentations.map((pres, idx) => {
                 const sol = solutionMap[idx];
                 return {
@@ -728,13 +917,13 @@
                 const card = document.createElement('div');
                 card.className = 'presentation-card';
                 card.innerHTML = `
-                    <div class="idx">#${item.idx}</div>
+                    <div class="idx">#${item.idx + 1}</div>
                     <div class="preview">${preview}</div>
                     <div class="meta">
                         <span class="badge ${item.solved ? 'badge-solved' : 'badge-unsolved'}">
                             ${item.solved ? 'Solved' : 'Unsolved'}
                         </span>
-                        <span>${item.solved && item.solution ? item.solution.path_length + ' steps' : '—'}</span>
+                        <span>${item.solved && item.solution ? (item.solution.path_length || item.solution.path?.length || 0) + ' steps' : '—'}</span>
                     </div>
                 `;
                 card.addEventListener('click', () => {
@@ -749,7 +938,7 @@
         function showPath(item) {
             const { idx, pres, solved, solution } = item;
             
-            pathTitle.textContent = `Presentation #${idx}`;
+            pathTitle.textContent = `Presentation #${idx + 1}`;
             pathSteps.innerHTML = '';
 
             let [r1, r2] = parsePresentation(pres);
@@ -766,7 +955,9 @@
                 return;
             }
 
-            pathMeta.textContent = `${solution.path_length} steps • ${solution.time.toFixed(4)}s`;
+            const pathLength = solution.path_length || solution.path.length;
+            const timeStr = solution.time ? ` • ${solution.time.toFixed(4)}s` : '';
+            pathMeta.textContent = `${pathLength} steps${timeStr}`;
 
             // Initial state
             const initialStep = document.createElement('div');
@@ -825,6 +1016,7 @@
             pathViewer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
+        // Event Listeners
         closePathBtn.addEventListener('click', () => {
             pathViewer.classList.remove('visible');
             document.querySelectorAll('.presentation-card').forEach(c => c.classList.remove('selected'));
@@ -837,6 +1029,75 @@
                 currentFilter = btn.dataset.filter;
                 renderPresentations();
             });
+        });
+
+        sourceBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const source = btn.dataset.source;
+                if (source === 'custom' && customSolutions.length === 0) {
+                    uploadInfo.textContent = 'Please upload a file first';
+                    uploadInfo.classList.remove('success');
+                    return;
+                }
+                sourceBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentSource = source;
+                buildSolutionMap(source === 'default' ? defaultSolutions : customSolutions);
+                updateStats();
+                renderPresentations();
+            });
+        });
+
+        customFileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            uploadInfo.textContent = `Loading ${file.name}...`;
+            uploadInfo.classList.remove('success');
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    customSolutions = parseSolutionsFile(e.target.result);
+                    const solved = customSolutions.filter(s => s.solved).length;
+                    uploadInfo.textContent = `✓ Loaded: ${file.name} (${solved}/${customSolutions.length} solved)`;
+                    uploadInfo.classList.add('success');
+
+                    // Auto-switch to custom
+                    sourceBtns.forEach(b => b.classList.remove('active'));
+                    document.querySelector('[data-source="custom"]').classList.add('active');
+                    currentSource = 'custom';
+                    buildSolutionMap(customSolutions);
+                    updateStats();
+                    renderPresentations();
+                } catch (err) {
+                    uploadInfo.textContent = `Error: ${err.message}`;
+                    uploadInfo.classList.remove('success');
+                }
+            };
+            reader.readAsText(file);
+        });
+
+        // Drag and drop
+        uploadSection.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadSection.classList.add('dragover');
+        });
+
+        uploadSection.addEventListener('dragleave', () => {
+            uploadSection.classList.remove('dragover');
+        });
+
+        uploadSection.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadSection.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file) {
+                const dt = new DataTransfer();
+                dt.items.add(file);
+                customFileInput.files = dt.files;
+                customFileInput.dispatchEvent(new Event('change'));
+            }
         });
 
         searchInput.addEventListener('input', renderPresentations);
