@@ -522,6 +522,16 @@
             background: var(--success);
         }
 
+        .step.step-warning {
+            border-left-color: var(--warning);
+            background: rgba(245, 158, 11, 0.08);
+        }
+
+        .step.step-warning .step-number {
+            background: var(--warning);
+            color: var(--text-primary);
+        }
+
         .notation-key {
             background: var(--bg-secondary);
             border-radius: 12px;
@@ -697,6 +707,9 @@
             <p style="margin-top: 0.75rem; color: var(--text-secondary); font-size: 0.85rem;">
                 <strong>Notation:</strong> x, y = generators &nbsp;|&nbsp; X, Y = inverses (x⁻¹, y⁻¹) &nbsp;|&nbsp; ε = empty word &nbsp;|&nbsp; Goal: reduce to length 2
             </p>
+            <p style="margin-top: 0.5rem; font-size: 0.8rem;">
+                Replay logic matches <a href="https://github.com/Avi161/AC-Solver-Caltech" target="_blank" rel="noopener">AC-Solver-Caltech</a> <code>ac_solver.envs.ac_moves.ACMove</code>. If a path does not reach trivial, verify with <code>replay_path.py</code> in that repo.
+            </p>
         </section>
     </div>
 
@@ -831,7 +844,7 @@
         }
 
         function reduceWord(word) {
-            const result = [];
+            let result = [];
             for (const c of word) {
                 if (c === 0) continue;
                 if (result.length > 0) {
@@ -847,6 +860,7 @@
             return result;
         }
 
+        // Inverse of word: (g1 g2 ... gn)^{-1} = gn^{-1} ... g1^{-1}, so reverse and flip each symbol.
         function invertWord(word) {
             const result = [];
             for (let i = word.length - 1; i >= 0; i--) {
@@ -997,19 +1011,37 @@
                 pathSteps.appendChild(stepEl);
             });
 
-            // Success
+            const finalLen = r1.length + r2.length;
+            const reachedTrivial = (finalLen === 2);
+
+            // Success or verification warning
             const successStep = document.createElement('div');
-            successStep.className = 'step final';
-            successStep.innerHTML = `
-                <div class="step-number">✓</div>
-                <div class="step-content">
-                    <div class="step-action">Trivial Presentation Reached</div>
-                    <div class="step-algebra">
-                        <span class="relator"><span class="value">⟨x,y | ε, ε⟩ ≅ F₂</span></span>
+            successStep.className = `step final ${reachedTrivial ? '' : 'step-warning'}`;
+            if (reachedTrivial) {
+                successStep.innerHTML = `
+                    <div class="step-number">✓</div>
+                    <div class="step-content">
+                        <div class="step-action">Trivial Presentation Reached</div>
+                        <div class="step-algebra">
+                            <span class="relator"><span class="value">⟨x,y | ε, ε⟩ ≅ F₂</span></span>
+                        </div>
                     </div>
-                </div>
-                <div class="step-length">Len: 2</div>
-            `;
+                    <div class="step-length">Len: 2</div>
+                `;
+            } else {
+                successStep.innerHTML = `
+                    <div class="step-number">!</div>
+                    <div class="step-content">
+                        <div class="step-action">Path did not reach trivial state</div>
+                        <div class="step-algebra">
+                            <span class="relator"><span class="label">R1 =</span> <span class="value">${wordToString(r1)}</span></span>
+                            <span class="relator"><span class="label">R2 =</span> <span class="value">${wordToString(r2)}</span></span>
+                        </div>
+                        <div class="step-details" style="margin-top:0.5rem; color: var(--error); font-size:0.9rem;">Final length: ${finalLen} (expected 2). The solution may use a different convention or contain an error. Verify with <code>replay_path.py</code> in your environment.</div>
+                    </div>
+                    <div class="step-length">Len: ${finalLen}</div>
+                `;
+            }
             pathSteps.appendChild(successStep);
 
             pathViewer.classList.add('visible');
