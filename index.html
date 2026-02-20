@@ -685,17 +685,17 @@
                 <div class="notation-item"><code>h2</code> R1 ← R1 · R2⁻¹</div>
                 <div class="notation-item"><code>h3</code> R2 ← R2 · R1⁻¹</div>
                 <div class="notation-item"><code>h4</code> R1 ← R1 · R2</div>
-                <div class="notation-item"><code>h5</code> R2 ← A·R2·a (conj a⁻¹)</div>
-                <div class="notation-item"><code>h6</code> R1 ← B·R1·b (conj b⁻¹)</div>
-                <div class="notation-item"><code>h7</code> R2 ← B·R2·b (conj b⁻¹)</div>
-                <div class="notation-item"><code>h8</code> R1 ← a·R1·A (conj a)</div>
-                <div class="notation-item"><code>h9</code> R2 ← a·R2·A (conj a)</div>
-                <div class="notation-item"><code>h10</code> R1 ← b·R1·B (conj b)</div>
-                <div class="notation-item"><code>h11</code> R2 ← b·R2·B (conj b)</div>
-                <div class="notation-item"><code>h12</code> R1 ← A·R1·a (conj a⁻¹)</div>
+                <div class="notation-item"><code>h5</code> R2 ← X·R2·x (conj x⁻¹)</div>
+                <div class="notation-item"><code>h6</code> R1 ← Y·R1·y (conj y⁻¹)</div>
+                <div class="notation-item"><code>h7</code> R2 ← Y·R2·y (conj y⁻¹)</div>
+                <div class="notation-item"><code>h8</code> R1 ← x·R1·X (conj x)</div>
+                <div class="notation-item"><code>h9</code> R2 ← x·R2·X (conj x)</div>
+                <div class="notation-item"><code>h10</code> R1 ← y·R1·Y (conj y)</div>
+                <div class="notation-item"><code>h11</code> R2 ← y·R2·Y (conj y)</div>
+                <div class="notation-item"><code>h12</code> R1 ← X·R1·x (conj x⁻¹)</div>
             </div>
             <p style="margin-top: 0.75rem; color: var(--text-secondary); font-size: 0.85rem;">
-                <strong>Notation:</strong> a, b = generators &nbsp;|&nbsp; A, B = inverses (a⁻¹, b⁻¹) &nbsp;|&nbsp; ε = empty word &nbsp;|&nbsp; Goal: reduce to length 2
+                <strong>Notation:</strong> x, y = generators &nbsp;|&nbsp; X, Y = inverses (x⁻¹, y⁻¹) &nbsp;|&nbsp; ε = empty word &nbsp;|&nbsp; Goal: reduce to length 2
             </p>
         </section>
     </div>
@@ -706,17 +706,17 @@
             1: "h2: R1 ← R1 · R2⁻¹",
             2: "h3: R2 ← R2 · R1⁻¹",
             3: "h4: R1 ← R1 · R2",
-            4: "h5: R2 ← A·R2·a",
-            5: "h6: R1 ← B·R1·b",
-            6: "h7: R2 ← B·R2·b",
-            7: "h8: R1 ← a·R1·A",
-            8: "h9: R2 ← a·R2·A",
-            9: "h10: R1 ← b·R1·B",
-            10: "h11: R2 ← b·R2·B",
-            11: "h12: R1 ← A·R1·a"
+            4: "h5: R2 ← X·R2·x",
+            5: "h6: R1 ← Y·R1·y",
+            6: "h7: R2 ← Y·R2·y",
+            7: "h8: R1 ← x·R1·X",
+            8: "h9: R2 ← x·R2·X",
+            9: "h10: R1 ← y·R1·Y",
+            10: "h11: R2 ← y·R2·Y",
+            11: "h12: R1 ← X·R1·x"
         };
 
-        const SYMBOLS = { 1: 'a', 2: 'b', '-1': 'A', '-2': 'B' };
+        const SYMBOLS = { 1: 'x', 2: 'y', '-1': 'X', '-2': 'Y' };
 
         let defaultSolutions = [];
         let customSolutions = [];
@@ -948,7 +948,7 @@
                 pathSteps.innerHTML = `
                     <div class="empty-state">
                         <p>This presentation has not been solved yet.</p>
-                        <p style="margin-top:0.5rem;">Initial state: ⟨a,b | ${wordToString(r1)}, ${wordToString(r2)}⟩</p>
+                        <p style="margin-top:0.5rem;">Initial state: ⟨x,y | ${wordToString(r1)}, ${wordToString(r2)}⟩</p>
                     </div>
                 `;
                 pathViewer.classList.add('visible');
@@ -1005,7 +1005,7 @@
                 <div class="step-content">
                     <div class="step-action">Trivial Presentation Reached</div>
                     <div class="step-algebra">
-                        <span class="relator"><span class="value">⟨a,b | ε, ε⟩ ≅ F₂</span></span>
+                        <span class="relator"><span class="value">⟨x,y | ε, ε⟩ ≅ F₂</span></span>
                     </div>
                 </div>
                 <div class="step-length">Len: 2</div>
