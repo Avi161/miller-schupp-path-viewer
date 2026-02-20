@@ -811,14 +811,15 @@
         function updateStats() {
             const solutions = currentSource === 'default' ? defaultSolutions : customSolutions;
             const solved = solutions.filter(s => s.solved);
-            const unsolved = solutions.filter(s => !s.solved);
-            const avgLength = solved.length > 0 
-                ? (solved.reduce((sum, s) => sum + (s.path_length || s.path?.length || 0), 0) / solved.length).toFixed(1)
+            const solvedCount = solved.length;
+            const unsolvedCount = presentations.length - solvedCount;  // 1190 - solved, not from jsonl lines
+            const avgLength = solvedCount > 0 
+                ? (solved.reduce((sum, s) => sum + (s.path_length || s.path?.length || 0), 0) / solvedCount).toFixed(1)
                 : 0;
 
             document.getElementById('total-count').textContent = presentations.length;
-            document.getElementById('solved-count').textContent = solved.length;
-            document.getElementById('unsolved-count').textContent = unsolved.length;
+            document.getElementById('solved-count').textContent = solvedCount;
+            document.getElementById('unsolved-count').textContent = unsolvedCount;
             document.getElementById('avg-length').textContent = avgLength;
         }
 
