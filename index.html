@@ -522,6 +522,15 @@
             background: var(--success);
         }
 
+        .step.cyclic-reduction {
+            border-left-color: #06b6d4;
+            background: rgba(6, 182, 212, 0.05);
+        }
+
+        .step.cyclic-reduction .step-number {
+            background: #06b6d4;
+        }
+
         .step.step-warning {
             border-left-color: var(--warning);
             background: rgba(245, 158, 11, 0.08);
@@ -636,7 +645,7 @@
             <details class="format-info">
                 <summary>Expected File Format</summary>
                 <p>Your file should be in JSONL format (one JSON object per line) or a JSON array:</p>
-                <pre><code>{"idx": 0, "solved": true, "path_length": 5, "path": [[8, 7], [5, 7], [3, 5], [9, 3], [2, 2]]}
+                <pre><code>{"idx": 0, "solved": true, "path_length": 5, "path": [[1, 9], [-2, 5], [11, 5], [3, 3], [0, 2]]}
 {"idx": 1, "solved": true, "path_length": 3, "path": [[1, 5], [7, 3], [2, 2]]}
 {"idx": 2, "solved": false}</code></pre>
                 <p><strong>Required fields:</strong></p>
@@ -645,7 +654,7 @@
                     <li><code>solved</code> - Boolean (true/false)</li>
                     <li><code>path</code> - Array of [action_id, resulting_length] pairs (if solved)</li>
                 </ul>
-                <p style="margin-top: 0.5rem;"><strong>Action IDs:</strong> 0-11 in file (displayed as h1-h12, see reference below)</p>
+                <p style="margin-top: 0.5rem;"><strong>Action IDs:</strong> 0-11 = AC moves (h1-h12), <code>-2</code> = explicit cyclic reduction</p>
             </details>
         </section>
 
@@ -703,9 +712,13 @@
                 <div class="notation-item"><code>h10</code> R1 ← y·R1·Y (conj y)</div>
                 <div class="notation-item"><code>h11</code> R2 ← y·R2·Y (conj y)</div>
                 <div class="notation-item"><code>h12</code> R1 ← X·R1·x (conj x⁻¹)</div>
+                <div class="notation-item" style="border-left: 3px solid #06b6d4; padding-left: 0.5rem;"><code>-2</code> Cyclic Reduction (both relators)</div>
             </div>
             <p style="margin-top: 0.75rem; color: var(--text-secondary); font-size: 0.85rem;">
                 <strong>Notation:</strong> x, y = generators &nbsp;|&nbsp; X, Y = inverses (x⁻¹, y⁻¹) &nbsp;|&nbsp; ε = empty word &nbsp;|&nbsp; Goal: reduce to length 2
+            </p>
+            <p style="margin-top: 0.25rem; color: var(--text-secondary); font-size: 0.85rem;">
+                <strong>Cyclic reduction</strong> cancels matching inverse pairs at the start and end of a cyclic word (e.g. <code>xBx⁻¹</code> → <code>B</code>). Steps shown in <span style="color: #06b6d4; font-weight: 600;">cyan</span>.
             </p>
             <p style="margin-top: 0.5rem; font-size: 0.8rem;">
                 Replay logic matches <a href="https://github.com/Avi161/AC-Solver-Caltech" target="_blank" rel="noopener">AC-Solver-Caltech</a> <code>ac_solver.envs.ac_moves.ACMove</code>. If a path does not reach trivial, verify with <code>replay_path.py</code> in that repo.
@@ -715,6 +728,7 @@
 
     <script>
         const AC_MOVE_NAMES = {
+            '-2': "Cyclic Reduction",
             0: "h1: R2 ← R2 · R1",
             1: "h2: R1 ← R1 · R2⁻¹",
             2: "h3: R2 ← R2 · R1⁻¹",
@@ -861,7 +875,15 @@
             return result;
         }
 
-        // Inverse of word: (g1 g2 ... gn)^{-1} = gn^{-1} ... g1^{-1}, so reverse and flip each symbol.
+        function cyclicReduceWord(word) {
+            if (word.length <= 1) return [...word];
+            let result = [...word];
+            while (result.length > 1 && result[0] === -result[result.length - 1]) {
+                result = result.slice(1, -1);
+            }
+            return result;
+        }
+
         function invertWord(word) {
             const result = [];
             for (let i = word.length - 1; i >= 0; i--) {
@@ -872,6 +894,9 @@
         }
 
         function applyACMove(r1, r2, actionId) {
+            if (actionId === -2) {
+                return [cyclicReduceWord(r1), cyclicReduceWord(r2)];
+            }
             let newR1 = [...r1], newR2 = [...r2];
             switch (actionId) {
                 case 0: newR2 = reduceWord([...r2, ...r1]); break;
@@ -995,13 +1020,14 @@
                 const [action, length] = step;
                 [r1, r2] = applyACMove(r1, r2, action);
                 const isFinal = index === solution.path.length - 1;
+                const isCyclicReduction = action < 0;
 
                 const stepEl = document.createElement('div');
-                stepEl.className = `step ${isFinal ? 'final' : ''}`;
+                stepEl.className = `step ${isFinal ? 'final' : ''} ${isCyclicReduction ? 'cyclic-reduction' : ''}`;
                 stepEl.innerHTML = `
                     <div class="step-number">${index + 1}</div>
                     <div class="step-content">
-                        <div class="step-action">${AC_MOVE_NAMES[action]}</div>
+                        <div class="step-action">${AC_MOVE_NAMES[action] || `Action ${action}`}</div>
                         <div class="step-algebra">
                             <span class="relator"><span class="label">R1 =</span> <span class="value">${wordToString(r1)}</span></span>
                             <span class="relator"><span class="label">R2 =</span> <span class="value">${wordToString(r2)}</span></span>

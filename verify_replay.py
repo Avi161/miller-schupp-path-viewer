@@ -165,7 +165,10 @@ def main():
 
         try:
             for action, _ in path:
-                state, lengths = ACMove(action, state, max_len, lengths, cyclical=False)
+                if action == -2:
+                    state, lengths = simplify_presentation(state, max_len, lengths, cyclical=True)
+                else:
+                    state, lengths = ACMove(action, state, max_len, lengths, cyclical=False)
             total = sum(lengths)
             if total == 2:
                 verified += 1
